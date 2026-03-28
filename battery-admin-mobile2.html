@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>KS Battery — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0f14;
+  --surface: #161920;
+  --surface2: #1e222d;
+  --surface3: #252a38;
+  --border: #2c3347;
+  --accent: #f0b429;
+  --accent2: #e05c2a;
+  --green: #22c55e;
+  --red: #ef4444;
+  --blue: #3b82f6;
+  --text: #e8eaf0;
+  --text2: #9aa3b8;
+  --text3: #5c6680;
+  --font-body: 'Sarabun', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --header-h: 52px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 14px; }
+
+/* ─── HEADER ─── */
+header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  height: var(--header-h);
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 14px;
+}
+.hamburger {
+  width: 36px; height: 36px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  cursor: pointer; border-radius: 8px; flex-shrink: 0;
+  background: var(--surface2); border: 1px solid var(--border);
+  transition: background 0.15s;
+}
+.hamburger:active { background: var(--surface3); }
+.hamburger span {
+  display: block; width: 16px; height: 2px;
+  background: var(--text2); border-radius: 2px;
+  transition: all 0.25s;
+}
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.logo {
+  font-family: var(--font-mono); font-weight: 700; font-size: 13px;
+  letter-spacing: 0.04em; display: flex; align-items: center; gap: 8px;
+}
+.logo-icon {
+  width: 28px; height: 28px; background: var(--accent); border-radius: 6px;
+  display: flex; align-items: center; justify-content: center; font-size: 13px; color: #000;
+}
+.header-badges { margin-left: auto; display: flex; gap: 8px; }
+.badge {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 16px; padding: 3px 10px; font-size: 11px; color: var(--text2);
+  white-space: nowrap;
+}
+.badge span { color: var(--accent); font-weight: 700; }
+
+/* ─── LAYOUT ─── */
+.layout {
+  display: flex;
+  height: 100vh;
+  padding-top: var(--header-h);
+}
+
+/* ─── DRAWER OVERLAY ─── */
+.drawer-overlay {
+  position: fixed; inset: 0; z-index: 150;
+  background: rgba(0,0,0,0.6);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s;
+}
+.drawer-overlay.open { opacity: 1; pointer-events: all; }
+
+/* ─── SIDEBAR DRAWER ─── */
+.sidebar {
+  position: fixed; top: var(--header-h); left: 0; bottom: 0; z-index: 160;
+  width: 240px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  transform: translateX(-100%);
+  transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+  padding: 16px 0 32px;
+}
+.sidebar.open { transform: translateX(0); }
+
+.sidebar-section { padding: 0 10px; margin-bottom: 6px; }
+.sidebar-label {
+  font-size: 10px; font-family: var(--font-mono); color: var(--text3);
+  letter-spacing: 0.1em; padding: 4px 8px 4px; margin-bottom: 2px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 8px; cursor: pointer;
+  color: var(--text2); font-size: 13px; transition: all 0.15s; user-select: none;
+}
+.nav-item:active { background: var(--surface3); }
+.nav-item.active { background: rgba(240,180,41,0.12); color: var(--accent); }
+.nav-item .icon { font-size: 14px; width: 20px; text-align: center; flex-shrink: 0; }
+.nav-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.sidebar-divider { height: 1px; background: var(--border); margin: 10px 18px; }
+
+/* ─── MAIN ─── */
+.main {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 14px 12px 80px;
+  display: flex; flex-direction: column; gap: 14px;
+  width: 100%;
+}
+
+/* ─── STATS ─── */
+.stats-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 14px;
+}
+.stat-label { font-size: 10px; color: var(--text3); font-family: var(--font-mono); letter-spacing: 0.04em; margin-bottom: 4px; }
+.stat-value { font-size: 22px; font-family: var(--font-mono); font-weight: 700; }
+.stat-value.accent { color: var(--accent); }
+.stat-value.green { color: var(--green); }
+.stat-sub { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+/* ─── TOOLBAR ─── */
+.toolbar { display: flex; flex-direction: column; gap: 8px; }
+.toolbar-row { display: flex; gap: 8px; }
+
+.search-box { flex: 1; position: relative; }
+.search-box input {
+  width: 100%;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text); font-family: var(--font-body); font-size: 14px;
+  padding: 10px 12px 10px 36px; outline: none; transition: border-color 0.2s;
+}
+.search-box input::placeholder { color: var(--text3); }
+.search-box input:focus { border-color: var(--accent); }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 14px; }
+
+select {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text); font-family: var(--font-body);
+  font-size: 13px; padding: 10px 10px; outline: none; cursor: pointer; flex: 1;
+}
+select:focus { border-color: var(--accent); }
+
+.btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 14px; border-radius: 8px; border: none;
+  font-family: var(--font-body); font-size: 13px; cursor: pointer;
+  transition: all 0.15s; font-weight: 600; white-space: nowrap;
+}
+.btn-primary { background: var(--accent); color: #000; }
+.btn-primary:active { background: #f5c545; }
+.btn-ghost { background: var(--surface); border: 1px solid var(--border); color: var(--text2); }
+.btn-ghost:active { background: var(--surface2); }
+
+/* Price view tabs */
+.price-tabs {
+  display: flex; gap: 0; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 8px; padding: 3px;
+}
+.price-tab {
+  flex: 1; text-align: center; padding: 7px 4px;
+  border-radius: 6px; font-size: 11px; cursor: pointer;
+  color: var(--text3); transition: all 0.15s; user-select: none;
+}
+.price-tab.active { background: var(--surface); color: var(--text); font-weight: 600; }
+
+/* ─── CARD LIST (mobile) ─── */
+.card-list { display: flex; flex-direction: column; gap: 8px; }
+
+.product-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+  transition: border-color 0.15s;
+}
+.product-card:active { border-color: var(--accent); }
+
+.card-main {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  padding: 12px 14px;
+  align-items: start;
+  cursor: pointer;
+}
+
+.card-left { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; padding-top: 2px; }
+
+.card-center { min-width: 0; }
+.card-model { font-size: 15px; font-weight: 700; line-height: 1.2; margin-bottom: 3px; }
+.card-meta { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 5px; }
+.card-code { font-family: var(--font-mono); font-size: 11px; color: var(--text2); }
+
+.card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+
+/* Stock display */
+.stock-row { display: flex; gap: 6px; align-items: center; }
+.stock-pill {
+  display: flex; align-items: center; gap: 3px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 3px 7px;
+}
+.stock-pill-label { font-size: 9px; color: var(--text3); font-family: var(--font-mono); }
+.stock-pill-val {
+  font-family: var(--font-mono); font-size: 13px; font-weight: 700;
+  min-width: 14px; text-align: center;
+}
+.stock-pill-val.zero { color: var(--text3); }
+.stock-pill-val.low { color: var(--accent2); }
+.stock-pill-val.ok { color: var(--green); }
+
+/* Price display */
+.price-block { text-align: right; }
+.price-label { font-size: 9px; color: var(--text3); margin-bottom: 1px; }
+.price-val { font-family: var(--font-mono); font-size: 13px; font-weight: 700; }
+.price-val.trade { color: var(--accent); }
+.price-val.notrade { color: var(--text2); }
+
+/* Brand / Type chips */
+.brand-chip {
+  display: inline-flex; align-items: center;
+  padding: 2px 7px; border-radius: 4px;
+  font-size: 10px; font-weight: 700; font-family: var(--font-mono);
+}
+.brand-FB { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
+.brand-GS { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+.brand-3K { background: rgba(240,180,41,0.15); color: #fbbf24; border: 1px solid rgba(240,180,41,0.25); }
+.brand-Yuasa { background: rgba(168,85,247,0.15); color: #c084fc; border: 1px solid rgba(168,85,247,0.25); }
+.brand-OM { background: rgba(249,115,22,0.15); color: #fb923c; border: 1px solid rgba(249,115,22,0.25); }
+
+.type-chip {
+  display: inline-flex; align-items: center;
+  padding: 2px 6px; border-radius: 3px;
+  font-size: 10px; font-family: var(--font-mono); font-weight: 700;
+}
+.type-MF { background: rgba(59,130,246,0.1); color: #93c5fd; }
+.type-Hybrid { background: rgba(34,197,94,0.1); color: #86efac; }
+.type-EFB { background: rgba(168,85,247,0.1); color: #d8b4fe; }
+.type-SMF { background: rgba(14,165,233,0.1); color: #7dd3fc; }
+.type-CV { background: rgba(249,115,22,0.1); color: #fdba74; }
+
+.amp-badge {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--accent);
+}
+
+/* Expand section */
+.card-expand { border-top: 1px solid var(--border); }
+
+.stock-edit-section {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.stock-edit-title { font-size: 10px; color: var(--text3); font-family: var(--font-mono); margin-bottom: 8px; letter-spacing: 0.05em; }
+.stock-edit-row { display: flex; gap: 10px; }
+.stock-side { flex: 1; }
+.stock-side-label { font-size: 10px; color: var(--text2); margin-bottom: 5px; font-family: var(--font-mono); }
+.stock-stepper-row {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 4px;
+}
+.step-btn {
+  width: 34px; height: 34px;
+  background: var(--surface3); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text); font-size: 18px; font-weight: 300;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; user-select: none; flex-shrink: 0;
+  transition: all 0.1s;
+}
+.step-btn:active { background: var(--accent); color: #000; border-color: var(--accent); }
+.step-input {
+  flex: 1; background: transparent; border: none; outline: none;
+  font-family: var(--font-mono); font-size: 18px; font-weight: 700;
+  color: var(--text); text-align: center; min-width: 0;
+}
+
+.car-section { padding: 10px 14px 12px; }
+.car-section-title { font-size: 10px; color: var(--text3); font-family: var(--font-mono); margin-bottom: 6px; letter-spacing: 0.05em; }
+.car-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.car-tag {
+  font-size: 10px; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 4px; padding: 2px 6px; color: var(--text3);
+}
+
+.card-actions {
+  display: flex; gap: 0; border-top: 1px solid var(--border);
+}
+.card-action-btn {
+  flex: 1; padding: 10px; text-align: center; font-size: 12px;
+  color: var(--text3); cursor: pointer; transition: all 0.15s;
+  font-family: var(--font-body);
+}
+.card-action-btn:first-child { border-right: 1px solid var(--border); }
+.card-action-btn:active { background: var(--surface2); color: var(--text); }
+.card-action-btn.del:active { background: rgba(239,68,68,0.1); color: var(--red); }
+
+/* expand arrow */
+.expand-arrow {
+  font-size: 10px; color: var(--text3); margin-top: 2px;
+  transition: transform 0.2s;
+  display: flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px;
+}
+.expand-arrow.open { transform: rotate(180deg); color: var(--accent); }
+
+/* ─── EMPTY ─── */
+.empty { text-align: center; padding: 40px 24px; color: var(--text3); }
+.empty-icon { font-size: 36px; margin-bottom: 10px; }
+
+/* ─── FAB ─── */
+.fab {
+  position: fixed; right: 18px; bottom: 24px; z-index: 100;
+  width: 52px; height: 52px; border-radius: 16px;
+  background: var(--accent); color: #000;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; font-weight: 300; cursor: pointer; border: none;
+  box-shadow: 0 4px 20px rgba(240,180,41,0.4);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.fab:active { transform: scale(0.93); box-shadow: 0 2px 10px rgba(240,180,41,0.3); }
+
+/* ─── MODAL ─── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+  display: flex; align-items: flex-end;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px 20px 0 0;
+  width: 100%; max-height: 92vh;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.modal-overlay.open .modal { transform: translateY(0); }
+
+.modal-handle {
+  width: 40px; height: 4px; background: var(--border);
+  border-radius: 2px; margin: 10px auto 0;
+}
+.modal-head {
+  padding: 14px 20px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-title { font-size: 15px; font-weight: 600; }
+.modal-close {
+  width: 30px; height: 30px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text2); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 14px;
+}
+.modal-body { padding: 16px 20px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group.full { grid-column: 1/-1; }
+.form-label { font-size: 10px; color: var(--text3); font-family: var(--font-mono); letter-spacing: 0.05em; }
+.form-input {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text); font-family: var(--font-body);
+  font-size: 14px; padding: 10px 12px; outline: none; transition: border-color 0.2s;
+}
+.form-input:focus { border-color: var(--accent); }
+.form-input::placeholder { color: var(--text3); }
+textarea.form-input { resize: none; }
+.modal-foot {
+  padding: 14px 20px 28px;
+  border-top: 1px solid var(--border);
+  display: flex; gap: 10px;
+}
+.modal-foot .btn { flex: 1; padding: 12px; }
+
+/* ─── TOAST ─── */
+.toast {
+  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--surface2); border: 1px solid var(--border);
+  border-left: 3px solid var(--green);
+  border-radius: 10px; padding: 10px 16px;
+  font-size: 13px; color: var(--text); z-index: 400;
+  opacity: 0; transition: all 0.3s; white-space: nowrap;
+  max-width: 90vw; text-align: center;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.error { border-left-color: var(--red); }
+
+/* highlight */
+mark { background: rgba(240,180,41,0.3); color: var(--accent); border-radius: 2px; padding: 0 1px; }
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* section header */
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 2px 0;
+}
+.section-title { font-size: 12px; font-family: var(--font-mono); color: var(--text3); letter-spacing: 0.04em; }
+.section-count { font-size: 11px; color: var(--text3); background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 2px 8px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="hamburger" id="hamburger" onclick="toggleSidebar()">
+    <span></span><span></span><span></span>
+  </div>
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    KS Battery
+  </div>
+  <div class="header-badges">
+    <div class="badge" id="save-badge" title="บันทึกล่าสุด">💾 <span id="save-time">ยังไม่ได้บันทึก</span></div>
+    <div class="badge" onclick="resetToDefault()" title="รีเซ็ตกลับข้อมูลเดิม" style="cursor:pointer">🔄 <span>รีเซ็ต</span></div>
+    <div class="badge">สต็อก <span id="total-stock">0</span></div>
+  </div>
+</header>
+
+<!-- DRAWER OVERLAY -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR DRAWER -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">FILTER ยี่ห้อ</div>
+    <div class="nav-item active" onclick="filterBrand('')"><span class="icon">🔋</span> ทั้งหมด</div>
+    <div class="nav-item" onclick="filterBrand('FB')"><span class="nav-dot" style="background:#4ade80"></span> FB Battery</div>
+    <div class="nav-item" onclick="filterBrand('GS')"><span class="nav-dot" style="background:#60a5fa"></span> GS Battery</div>
+    <div class="nav-item" onclick="filterBrand('3K')"><span class="nav-dot" style="background:#fbbf24"></span> 3K Battery</div>
+    <div class="nav-item" onclick="filterBrand('Yuasa')"><span class="nav-dot" style="background:#c084fc"></span> Yuasa</div>
+    <div class="nav-item" onclick="filterBrand('OM')"><span class="nav-dot" style="background:#fb923c"></span> Omnicraft</div>
+  </div>
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">FILTER ประเภท</div>
+    <div class="nav-item" onclick="filterType('')"><span class="icon">🔁</span> ทั้งหมด</div>
+    <div class="nav-item" onclick="filterType('Hybrid')"><span class="icon">♻️</span> Hybrid (HB)</div>
+    <div class="nav-item" onclick="filterType('MF')"><span class="icon">🔵</span> MF กึ่งแห้ง</div>
+    <div class="nav-item" onclick="filterType('SMF')"><span class="icon">🟡</span> SMF แห้ง</div>
+    <div class="nav-item" onclick="filterType('EFB')"><span class="icon">🟢</span> EFB</div>
+    <div class="nav-item" onclick="filterType('CV')"><span class="icon">🟠</span> CV แบตน้ำ</div>
+  </div>
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">FILTER สต็อก</div>
+    <div class="nav-item" onclick="filterStock('')"><span class="icon">📦</span> ทั้งหมด</div>
+    <div class="nav-item" onclick="filterStock('instock')"><span class="icon" style="color:var(--green)">●</span> มีสต็อก</div>
+    <div class="nav-item" onclick="filterStock('outofstock')"><span class="icon" style="color:var(--red)">●</span> หมดสต็อก</div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="layout">
+<main class="main" id="main">
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">SKU</div>
+      <div class="stat-value accent" id="stat-sku">0</div>
+      <div class="stat-sub">รายการ</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">สต็อกรวม</div>
+      <div class="stat-value green" id="stat-total">0</div>
+      <div class="stat-sub">ลูก</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">หมดสต็อก</div>
+      <div class="stat-value" id="stat-zero" style="color:var(--red)">0</div>
+      <div class="stat-sub">SKU</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">มูลค่า</div>
+      <div class="stat-value" id="stat-value" style="color:var(--text);font-size:16px">0</div>
+      <div class="stat-sub">บาท (พร้อมเทิร์น)</div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-input" placeholder="ค้นหา รุ่น รหัส ยี่ห้อ รถยนต์..." oninput="renderCards()">
+    </div>
+    <div class="toolbar-row">
+      <select id="filter-amp" onchange="renderCards()" style="flex:1">
+        <option value="">แอมป์ทั้งหมด</option>
+      </select>
+      <div class="price-tabs" style="flex:1.5">
+        <div class="price-tab active" onclick="switchPriceView('with',this)">พร้อมเทิร์น</div>
+        <div class="price-tab" onclick="switchPriceView('without',this)">ไม่เทิร์น</div>
+        <div class="price-tab" onclick="switchPriceView('both',this)">ทั้งสอง</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section header -->
+  <div class="section-header">
+    <div class="section-title">รายการสินค้า</div>
+    <div class="section-count" id="list-count">0 รายการ</div>
+  </div>
+
+  <!-- Card list -->
+  <div class="card-list" id="card-list"></div>
+
+</main>
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="openModal()" title="เพิ่มสินค้า">＋</button>
+
+<!-- MODAL (bottom sheet) -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-head">
+      <div class="modal-title" id="modal-title">เพิ่มสินค้าใหม่</div>
+      <div class="modal-close" onclick="closeModal()">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">AMP (แอมป์)</label>
+          <input class="form-input" id="f-amp" type="number" inputmode="numeric" placeholder="85">
+        </div>
+        <div class="form-group">
+          <label class="form-label">ประเภท</label>
+          <select class="form-input" id="f-type">
+            <option>MF</option><option>Hybrid</option><option>EFB</option>
+            <option>SMF</option><option>CV</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">ยี่ห้อ</label>
+          <select class="form-input" id="f-brand">
+            <option>FB</option><option>GS</option><option>3K</option>
+            <option>Yuasa</option><option>OM</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">รุ่น</label>
+          <input class="form-input" id="f-model" type="text" placeholder="F-135 R">
+        </div>
+        <div class="form-group">
+          <label class="form-label">รหัส JIS/DIN</label>
+          <input class="form-input" id="f-code" type="text" placeholder="85D31R">
+        </div>
+        <div class="form-group">
+          <label class="form-label">ขนาด (mm)</label>
+          <input class="form-input" id="f-size" type="text" placeholder="304x171x201">
+        </div>
+        <div class="form-group">
+          <label class="form-label">สต็อก ขั้ว R</label>
+          <input class="form-input" id="f-r" type="number" inputmode="numeric" value="0" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">สต็อก ขั้ว L</label>
+          <input class="form-input" id="f-l" type="number" inputmode="numeric" value="0" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">ราคาพร้อมเทิร์น (฿)</label>
+          <input class="form-input" id="f-price-trade" type="number" inputmode="numeric" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">ราคาไม่เทิร์น (฿)</label>
+          <input class="form-input" id="f-price-notrade" type="number" inputmode="numeric" placeholder="0">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">รถยนต์ที่ใช้ได้ (คั่นด้วย ,)</label>
+          <textarea class="form-input" id="f-cars" rows="3" placeholder="Vigo 2.5, Fortuner 3.0, D-Max 2.5"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveItem()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let products = [
+  {id:1,amp:85,type:'Hybrid',brand:'FB',model:'F-135 R',code:'85D31R',size:'304x171x201',r:1,l:0,priceT:2500,priceN:3000,cars:['All-New BT-50 3.0','BT-50 2.5','Dragon Eye 2.5','Frontier 2.7','Frontier 3.0','Mighty-X 2.5','TFR 2.5','TFR 2.8','Tiger D4D 2.5','Tiger D4D 3.0','Trooper 2.5','Trooper 3.0']},
+  {id:2,amp:85,type:'Hybrid',brand:'FB',model:'F-135 L',code:'85D31L',size:'304x171x201',r:0,l:1,priceT:2500,priceN:3000,cars:['All-New Pajero Sport 2.4 2016-2022','Triton 2.4','Triton 2.5','Triton 3.2','Xenon 2.2 150 NX-PLORE','Xenon 2.2 CNG']},
+  {id:3,amp:45,type:'MF',brand:'FB',model:'S-600 L',code:'55B24L',size:'237x127x201',r:0,l:1,priceT:1600,priceN:1900,cars:['Civic FB 1.8','Civic FD 2.0','Corolla Altis 1.6 2014-2018','Corolla Altis 1.8 2014-2018','Lancer Cedia 1.6','Mazda2 1.3 2015-2018','Nissan Sylphy 1.6','Pulsar 1.6','Sienta 1.5','Swift 1.2 2012-2017','Vios 1.5 2007-2013','Vitara 1.6','Yaris 1.2 Ativ 2017-2020']},
+  {id:4,amp:35,type:'MF',brand:'FB',model:'S-500 L',code:'46B19L',size:'185x125x200',r:0,l:1,priceT:1600,priceN:1900,cars:['All-New BR-V 1.5 2022','All-New Ertiga 1.5','All-New XL7 1.5','All-New Xpander 1.5','Attrage 1.2','Ciaz 1.2','City 1.3 2014-2019','City 1.5 2014-2019','CR-Z 1.5','Freed 1.5','Jazz 1.5','Mirage 1.2','Vios 1.5 2014-2022']},
+  {id:5,amp:80,type:'Hybrid',brand:'GS',model:'Extra 120',code:'80D31',size:'173x305x225',r:2,l:1,priceT:2400,priceN:2400,cars:['COLORADO (2.5) 2006-2011','D-MAX (1.9 & 2.5)','NAVARA','VIGO (2.5 & 2.7)','INNOVA (2.5 & 2.7)','DRAGON EYE','HIACE','TFR (2.5)','URVAN']},
+  {id:6,amp:75,type:'MF',brand:'GS',model:'G-175 R',code:'80D31',size:'173x305x225',r:1,l:0,priceT:2300,priceN:2700,cars:['FORTUNER (2.5)','INNOVA (2.5)','MU-X (1.9 & 2.5) 2012-2019','PAJERO SPORT (2.4)','COLORADO (2.5) 2006-2011','D-MAX (1.9 & 2.5) 2002-2015','NAVARA','TRIRON (2.4 & 2.5) 2014-2022','VIGO (2.5)']},
+  {id:7,amp:90,type:'MF',brand:'GS',model:'MFX-190 L',code:'105D31',size:'173x305x225',r:0,l:1,priceT:2700,priceN:3200,cars:['FORTUNER (3.0) 2005-2015','INNOVA (2.5 & 2.7)','MU-7 (3.0)','MU-X (2.5 & 3.0)','PAJERO SPORT 2016-2022','VIGO (3.0)','BT-50 (2.5 & 3.0) 2006-2015','COLORADO Z71 (2.5 & 3.0)','D-MAX (2.5 & 3.0)','TRITON (2.4 & 2.5 & 3.2) 2007-2022']},
+  {id:8,amp:90,type:'MF',brand:'GS',model:'MFX-190 R',code:'105D31',size:'173x305x225',r:1,l:0,priceT:2700,priceN:3200,cars:['ESCAPE (3.0)','EVEREST (2.5 & 3.0) 2003-2014','B2500','CAMEO (2.5)','DRAGON EYE (2.5)','FIGHTER','FRONTIER (2.7 & 3.0)','HIACE (MODIFY)','RANGER (2.5 & 3.0) 2007-2012','TFR (2.5 & 2.8)','TIGER (2.5)','TROOPER (2.5 & 3.0)','XENON (2.2)']},
+  {id:9,amp:45,type:'MF',brand:'GS',model:'46B24 L',code:'46B24',size:'129x238x225',r:0,l:1,priceT:1600,priceN:1900,cars:['ACCORD G7 (2.4) 2003-2007','ACCORD G8 (2.0 & 2.4) 2008-2012','ALTIS (1.6 & 1.8) 2014-2018','CITY (1.5) 2002-2010','CIVIC FB (1.8 & 2.0) 2012','CR-V (2.0 & 2.4) 2012-2022','VIOS (1.5) 2007-2013','YARIS (1.5) 2006-2012']},
+  {id:10,amp:50,type:'MF',brand:'GS',model:'MFX-60 L',code:'55B24',size:'129x238x225',r:0,l:1,priceT:1750,priceN:2000,cars:['ACCORD G7 (2.4) 2003-2007','ALTIS (1.6 & 1.8) 2014-2018','CITY (1.5) 2002-2010','CIVIC FB (1.8 & 2.0) 2012','CR-V (2.0 & 2.4) 2012-2022','VIOS (1.5) 2007-2013']},
+  {id:11,amp:75,type:'MF',brand:'GS',model:'MFX-80 L',code:'75D26',size:'171x258x225',r:0,l:1,priceT:2300,priceN:2700,cars:['Camry Esport (2.5)','Camry Hybrid 2015-2018','ES300','Alphard','D-Max (1.9 & 2.5) 2015-2019','Navara King Cab (2.5)','Triton (2.4) Gasoline']},
+  {id:12,amp:75,type:'MF',brand:'Yuasa',model:'LN3 (DIN75)',code:'LN3',size:'277x174x189',r:0,l:1,priceT:2400,priceN:2800,cars:['CRV','FORTUNER','INNOVA','REVO','MAJESTY','FORD: EVERST RANGER','MAZDA: BT50PRO','HYUNDAI: ELANTRA TUCSON','AUDI: A3 A4 A5 A6 TT','BMW: X1 Z4','BENZ: CLA200 CLA250']},
+  {id:13,amp:70,type:'CV',brand:'3K',model:'Spider 125',code:'70D31',size:'170x303x224',r:2,l:0,priceT:1800,priceN:2300,cars:['TOYOTA TIGER (1999-2001) 2.4-3.0','MAZDA BT-50 (2010-2012) 2.5-3.0','MITSUBISHI PAJERO SPORT(2016-2020) 2.4','TRITON (2018-2020) 2.4-2.5','ISUZU TFR (2002-2004) 2.5','TATA XENON (2018-2020) 2.2']},
+  {id:14,amp:50,type:'MF',brand:'3K',model:'PMF50 L',code:'50B24',size:'127x236x222',r:0,l:1,priceT:1600,priceN:1900,cars:['TOYOTA: SIENTA(2016) ALTIS(2009-2017) YARIS(2009-2014) VIOS(2007-2017)','HONDA: HR-V(2022-2024) CR-V(2017-2020) CIVIC(2012-2016)','NISSAN: SYLPHY(2018-2020) PULSAR(2014-2016) LIVINA(2014-2016)','MAZDA: 323(2002-2004) MAZDA2(2018-2020) MX-5(2018-2020)']},
+  {id:15,amp:65,type:'SMF',brand:'3K',model:'SVXLN2',code:'DIN65',size:'242x175x190',r:0,l:1,priceT:2700,priceN:3200,cars:['VOLVO: 440(2022-2023)','TOYOTA: REVO(2015-2020)','MG: MG3 ZS MG5(2015-2020)','HONDA: CIVIC(2020) CITY(2023-2024)']},
+  {id:16,amp:55,type:'EFB',brand:'3K',model:'EFB-N55',code:'80B24L',size:'236x127x224',r:0,l:1,priceT:2300,priceN:2700,cars:['Accord G9 2013-2018','Civic FC (1.8) 2016-2020','Civic Hatchback FK (1.5) Turbo 2017-2019','Swift (1.2) 2018-2022','Yaris Ativ (1.2) 2017-2020','CR-V G4 2012-2016','HR-V 2014-2023','Mazda 2 (1.3) 2017-2022']},
+  {id:17,amp:55,type:'EFB',brand:'GS',model:'N-55 ISS',code:'70B24',size:'129x238x225',r:0,l:1,priceT:2600,priceN:3100,cars:['Accord G9 2013-2018','Civic FC (1.8) 2016-2020','Civic Hatchback FK (1.5) Turbo 2017-2019','Swift (1.2) 2018-2022','Yaris Ativ (1.2) 2017-2020','CR-V G4 2012-2016','HR-V 2014-2023','Mazda 2 Skyactiv (Gasoline)']},
+  {id:18,amp:45,type:'SMF',brand:'OM',model:'55B24L',code:'55B24',size:'238x129x227',r:0,l:4,priceT:1350,priceN:1900,cars:['Civic FB 1.8','Civic FD 2.0','Corolla Altis 1.6 2014-2018','Lancer Cedia 1.6','Mazda2 1.3 2015-2018','Nissan Sylphy 1.6','Pulsar 1.6','Vios 1.5 2007-2013']},
+  {id:19,amp:74,type:'SMF',brand:'OM',model:'LN3',code:'LN3-MF',size:'275x175x190',r:0,l:1,priceT:2300,priceN:2700,cars:['CRV','FORTUNER','INNOVA','REVO','MAZDA: BT50PRO','HYUNDAI: ELANTRA TUCSON','AUDI: A3 A4 A5 A6 TT','BMW: X1 Z4','BENZ: CLA200 CLA250 GLA200 GLA250']},
+];
+
+const STORAGE_KEY = 'ks_battery_products';
+const STORAGE_META_KEY = 'ks_battery_meta';
+
+function saveToStorage() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+    const now = new Date().toISOString();
+    localStorage.setItem(STORAGE_META_KEY, JSON.stringify({ nextId, savedAt: now }));
+    updateSaveTimeBadge(now);
+  } catch(e) { console.warn('Save failed', e); }
+}
+
+function updateSaveTimeBadge(isoStr) {
+  if (!isoStr) return;
+  const d = new Date(isoStr);
+  const hh = String(d.getHours()).padStart(2,'0');
+  const mm = String(d.getMinutes()).padStart(2,'0');
+  const ss = String(d.getSeconds()).padStart(2,'0');
+  const el = document.getElementById('save-time');
+  if (el) el.textContent = `${hh}:${mm}:${ss}`;
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const meta = localStorage.getItem(STORAGE_META_KEY);
+    if (raw) {
+      products = JSON.parse(raw);
+      if (meta) nextId = JSON.parse(meta).nextId || (Math.max(...products.map(p=>p.id)) + 1);
+      return true;
+    }
+  } catch(e) { console.warn('Load failed', e); }
+  return false;
+}
+
+function getSavedAt() {
+  try {
+    const meta = localStorage.getItem(STORAGE_META_KEY);
+    if (meta) return JSON.parse(meta).savedAt;
+  } catch(e) {}
+  return null;
+}
+
+let currentBrand = '', currentType = '', currentStockFilter = '';
+let priceView = 'with';
+let expandedIds = new Set();
+let editingId = null;
+let nextId = 20;
+let sidebarOpen = false;
+
+// Sidebar
+function toggleSidebar() {
+  sidebarOpen = !sidebarOpen;
+  document.getElementById('sidebar').classList.toggle('open', sidebarOpen);
+  document.getElementById('drawer-overlay').classList.toggle('open', sidebarOpen);
+  document.getElementById('hamburger').classList.toggle('open', sidebarOpen);
+}
+function closeSidebar() {
+  sidebarOpen = false;
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.getElementById('hamburger').classList.remove('open');
+}
+
+function filterBrand(b) {
+  currentBrand = b;
+  document.querySelectorAll('.sidebar .nav-item').forEach(n => n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  renderCards(); closeSidebar();
+}
+function filterType(t) {
+  currentType = t;
+  document.querySelectorAll('.sidebar .nav-item').forEach(n => n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  renderCards(); closeSidebar();
+}
+function filterStock(s) {
+  currentStockFilter = s;
+  document.querySelectorAll('.sidebar .nav-item').forEach(n => n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  renderCards(); closeSidebar();
+}
+
+function switchPriceView(v, el) {
+  priceView = v;
+  document.querySelectorAll('.price-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderCards();
+}
+
+function getFiltered() {
+  const q = document.getElementById('search-input').value.toLowerCase().trim();
+  const fa = document.getElementById('filter-amp').value;
+  return products.filter(p => {
+    if (currentBrand && p.brand !== currentBrand) return false;
+    if (currentType && p.type !== currentType) return false;
+    if (fa && p.amp != fa) return false;
+    if (currentStockFilter === 'instock' && (p.r+p.l) === 0) return false;
+    if (currentStockFilter === 'outofstock' && (p.r+p.l) > 0) return false;
+    if (q) {
+      const hay = [p.model, p.code, p.brand, p.type, String(p.amp), ...p.cars].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function hl(t, q) {
+  if (!q) return t;
+  const i = t.toLowerCase().indexOf(q.toLowerCase());
+  if (i === -1) return t;
+  return t.slice(0,i) + '<mark>' + t.slice(i,i+q.length) + '</mark>' + t.slice(i+q.length);
+}
+
+function sc(n) { return n===0?'zero':n<=1?'low':'ok'; }
+
+function renderCards() {
+  const data = getFiltered();
+  const q = document.getElementById('search-input').value.toLowerCase().trim();
+  document.getElementById('list-count').textContent = data.length + ' รายการ';
+  updateStats();
+
+  if (data.length === 0) {
+    document.getElementById('card-list').innerHTML =
+      `<div class="empty"><div class="empty-icon">🔍</div><div>ไม่พบสินค้าที่ค้นหา</div></div>`;
+    return;
+  }
+
+  let html = '';
+  data.forEach(p => {
+    const exp = expandedIds.has(p.id);
+    const totalStock = p.r + p.l;
+
+    let priceHtml = '';
+    if (priceView === 'with' || priceView === 'both') {
+      priceHtml += `<div class="price-block"><div class="price-label">พร้อมเทิร์น</div><div class="price-val trade">฿${p.priceT.toLocaleString()}</div></div>`;
+    }
+    if (priceView === 'without' || priceView === 'both') {
+      priceHtml += `<div class="price-block" style="margin-top:${priceView==='both'?4:0}px"><div class="price-label">ไม่เทิร์น</div><div class="price-val notrade">฿${p.priceN.toLocaleString()}</div></div>`;
+    }
+
+    html += `
+    <div class="product-card" id="card-${p.id}">
+      <div class="card-main" onclick="toggleExpand(${p.id})">
+        <div class="card-left">
+          <span class="brand-chip brand-${p.brand}">${p.brand}</span>
+          <span class="type-chip type-${p.type.replace(/\s/g,'')}">${p.type}</span>
+          <span class="amp-badge">${p.amp}Ah</span>
+        </div>
+        <div class="card-center">
+          <div class="card-model">${hl(p.model, q)}</div>
+          <div class="card-meta">
+            <span class="card-code">${hl(p.code, q)}</span>
+          </div>
+          <div class="stock-row">
+            <div class="stock-pill">
+              <span class="stock-pill-label">R</span>
+              <span class="stock-pill-val ${sc(p.r)}">${p.r}</span>
+            </div>
+            <div class="stock-pill">
+              <span class="stock-pill-label">L</span>
+              <span class="stock-pill-val ${sc(p.l)}">${p.l}</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-right">
+          ${priceHtml}
+          <div class="expand-arrow ${exp?'open':''}">▼</div>
+        </div>
+      </div>
+      ${exp ? `
+      <div class="card-expand">
+        <div class="stock-edit-section">
+          <div class="stock-edit-title">แก้ไขสต็อก</div>
+          <div class="stock-edit-row">
+            <div class="stock-side">
+              <div class="stock-side-label">ขั้ว R (ขวา)</div>
+              <div class="stock-stepper-row">
+                <div class="step-btn" ontouchstart="" onclick="adj(${p.id},'r',-1)">−</div>
+                <input class="step-input" type="number" inputmode="numeric" value="${p.r}"
+                  onchange="setStock(${p.id},'r',this.value)" onclick="this.select()">
+                <div class="step-btn" ontouchstart="" onclick="adj(${p.id},'r',1)">+</div>
+              </div>
+            </div>
+            <div class="stock-side">
+              <div class="stock-side-label">ขั้ว L (ซ้าย)</div>
+              <div class="stock-stepper-row">
+                <div class="step-btn" ontouchstart="" onclick="adj(${p.id},'l',-1)">−</div>
+                <input class="step-input" type="number" inputmode="numeric" value="${p.l}"
+                  onchange="setStock(${p.id},'l',this.value)" onclick="this.select()">
+                <div class="step-btn" ontouchstart="" onclick="adj(${p.id},'l',1)">+</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="car-section">
+          <div class="car-section-title">รถยนต์ที่ใช้ได้ (${p.cars.length} รุ่น)</div>
+          <div class="car-tags">${p.cars.map(c=>`<span class="car-tag">${hl(c,q)}</span>`).join('')}</div>
+        </div>
+        <div class="card-actions">
+          <div class="card-action-btn" onclick="editItem(${p.id})">✏️ แก้ไขข้อมูล</div>
+          <div class="card-action-btn del" onclick="deleteItem(${p.id})">🗑️ ลบรายการ</div>
+        </div>
+      </div>` : ''}
+    </div>`;
+  });
+
+  document.getElementById('card-list').innerHTML = html;
+}
+
+function toggleExpand(id) {
+  if (expandedIds.has(id)) expandedIds.delete(id);
+  else expandedIds.add(id);
+  renderCards();
+}
+
+function adj(id, side, delta) {
+  const p = products.find(x => x.id===id);
+  if (!p) return;
+  if (side==='r') p.r = Math.max(0, p.r+delta);
+  else p.l = Math.max(0, p.l+delta);
+  saveToStorage();
+  renderCards();
+  showToast(`${p.model} ขั้ว ${side.toUpperCase()}: ${side==='r'?p.r:p.l} ลูก`);
+}
+
+function setStock(id, side, val) {
+  const p = products.find(x => x.id===id);
+  if (!p) return;
+  const n = Math.max(0, parseInt(val)||0);
+  if (side==='r') p.r = n; else p.l = n;
+  saveToStorage();
+  updateStats();
+}
+
+function updateStats() {
+  const data = getFiltered();
+  document.getElementById('stat-sku').textContent = data.length;
+  const total = data.reduce((s,p)=>s+p.r+p.l,0);
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('total-stock').textContent = products.reduce((s,p)=>s+p.r+p.l,0);
+  document.getElementById('stat-zero').textContent = data.filter(p=>p.r+p.l===0).length;
+  const val = data.reduce((s,p)=>s+(p.r+p.l)*p.priceT,0);
+  document.getElementById('stat-value').textContent = val.toLocaleString();
+}
+
+function populateAmpFilter() {
+  const amps = [...new Set(products.map(p=>p.amp))].sort((a,b)=>a-b);
+  const sel = document.getElementById('filter-amp');
+  sel.innerHTML = '<option value="">แอมป์ทั้งหมด</option>';
+  amps.forEach(a => sel.innerHTML += `<option value="${a}">${a} Ah</option>`);
+}
+
+function openModal(id=null) {
+  editingId = id;
+  const p = id ? products.find(x=>x.id===id) : null;
+  document.getElementById('modal-title').textContent = id ? 'แก้ไขสินค้า' : 'เพิ่มสินค้าใหม่';
+  document.getElementById('f-amp').value = p?p.amp:'';
+  document.getElementById('f-type').value = p?p.type:'MF';
+  document.getElementById('f-brand').value = p?p.brand:'FB';
+  document.getElementById('f-model').value = p?p.model:'';
+  document.getElementById('f-code').value = p?p.code:'';
+  document.getElementById('f-size').value = p?p.size:'';
+  document.getElementById('f-r').value = p?p.r:0;
+  document.getElementById('f-l').value = p?p.l:0;
+  document.getElementById('f-price-trade').value = p?p.priceT:'';
+  document.getElementById('f-price-notrade').value = p?p.priceN:'';
+  document.getElementById('f-cars').value = p?p.cars.join(', '):'';
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  editingId = null;
+}
+
+function editItem(id) { openModal(id); }
+
+function deleteItem(id) {
+  const p = products.find(x=>x.id===id);
+  if (!p || !confirm(`ลบ "${p.model}" ออกจากระบบ?`)) return;
+  products = products.filter(x=>x.id!==id);
+  expandedIds.delete(id);
+  saveToStorage();
+  renderCards(); populateAmpFilter();
+  showToast(`ลบ ${p.model} แล้ว`, true);
+}
+
+function saveItem() {
+  const amp = parseInt(document.getElementById('f-amp').value);
+  const model = document.getElementById('f-model').value.trim();
+  const code = document.getElementById('f-code').value.trim();
+  if (!amp || !model || !code) { alert('กรุณากรอก AMP, รุ่น และรหัสให้ครบ'); return; }
+  const item = {
+    id: editingId||nextId++, amp,
+    type: document.getElementById('f-type').value,
+    brand: document.getElementById('f-brand').value,
+    model, code,
+    size: document.getElementById('f-size').value.trim(),
+    r: parseInt(document.getElementById('f-r').value)||0,
+    l: parseInt(document.getElementById('f-l').value)||0,
+    priceT: parseInt(document.getElementById('f-price-trade').value)||0,
+    priceN: parseInt(document.getElementById('f-price-notrade').value)||0,
+    cars: document.getElementById('f-cars').value.split(',').map(s=>s.trim()).filter(Boolean),
+  };
+  if (editingId) { const i = products.findIndex(x=>x.id===editingId); products[i]=item; }
+  else products.push(item);
+  saveToStorage();
+  closeModal(); renderCards(); populateAmpFilter();
+  showToast(`บันทึก ${item.model} แล้ว`);
+}
+
+function showToast(msg, err=false) {
+  const t = document.getElementById('toast');
+  t.textContent = (err?'🗑️ ':'✅ ') + msg;
+  t.className = 'toast show' + (err?' error':'');
+  setTimeout(()=>{ t.className='toast'; }, 2500);
+}
+
+function resetToDefault() {
+  if (!confirm('รีเซ็ตกลับข้อมูลเริ่มต้น? การเปลี่ยนแปลงทั้งหมดจะหายไป')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(STORAGE_META_KEY);
+  location.reload();
+}
+
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target===this) closeModal();
+});
+
+// Init: load from localStorage or use defaults
+const loaded = loadFromStorage();
+if (loaded) {
+  const savedAt = getSavedAt();
+  if (savedAt) updateSaveTimeBadge(savedAt);
+}
+populateAmpFilter();
+renderCards();
+</script>
+</body>
+</html>
